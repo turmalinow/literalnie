@@ -3,13 +3,12 @@ from sys import exit
 
 
 logging.basicConfig(level=logging.DEBUG)
-# spływ
-# wysyć
 
-WORD = ["", "", "", "", "", ]
-NO_LETTERS_AT = ["", "", "", "", "", ]
-HAS_LETTERS = ""
-HAS_NO_LETTERS = ""
+
+WORD = ["", "", "", "", "", ]  # orange letters here
+NO_LETTERS_AT = ["", "", "", "", "", ]  # blue letters here
+HAS_LETTERS = ""  # not tried letters here
+HAS_NO_LETTERS = ""  # forbidden letters here
 
 
 def load_words():
