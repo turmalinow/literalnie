@@ -87,7 +87,6 @@ def with_letters(words):
 def main():
     """Main function"""
     pattern = build_pattern()
-    logging.debug('pattern %s', pattern)
     words = list(load_words())
     candidates = with_letters(match_words(words, pattern))
     if NO_DUPLICATES:
