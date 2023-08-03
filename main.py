@@ -1,5 +1,10 @@
+"""
+Literalnie helper
+"""
 import logging
-from sys import exit
+import re
+import sys
+from typing import List
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -7,72 +12,89 @@ logging.basicConfig(level=logging.DEBUG)
 
 WORD = ["", "", "", "", "", ]  # orange letters here
 NO_LETTERS_AT = ["", "", "", "", "", ]  # blue letters here
-HAS_LETTERS = ""  # not tried letters here
 HAS_NO_LETTERS = ""  # forbidden letters here
+NO_DUPLICATES = False
+CHECK = ""
+
+ALL_LETTERS = set("qwertyuiopasdfghjklzxcvbnmąćęłńóśźż")
 
 
 def load_words():
-    with open("5-letter-words.txt", "r") as input_file:
+    """Loads words"""
+    with open("5-letter-words.txt", "r", encoding="utf8") as input_file:
         return (line.strip() for line in input_file.readlines())
 
-def with_letters(words, letters):
-    return (word for word in words if contains_all(word, letters))
 
-def with_letters_at(words, letters):
-    passthrough = False
-    if "".join(letters) == "":
-        passthrough = True
+def build_pattern() -> str:
+    """Builds regular expression"""
+    result = []
+    for letter, no_letters in zip(WORD, NO_LETTERS_AT):
+        if letter:
+            result.append(letter)
+        else:
+            without_letters = set(no_letters + HAS_NO_LETTERS)
+            possibilities = ALL_LETTERS - without_letters
+            result.append(f'[{"".join(possibilities)}]')
+    return "".join(result)
+
+
+def match_words(words: List[str], pattern: str):
+    """Filter matching words"""
     for word in words:
-        if passthrough:
-            yield word
-        for i, letter in enumerate(letters):
-            if len(letter) > 0:
-                if with_letter_at(word, letter, i):
-                    yield word
-
-
-def with_letter_at(word, letter, at):
-    return word[at] == letter
-
-def without_letters_at(word, letters, at):
-    for letter in letters:
-        if word[at] == letter:
-            return False
-    return True
-
-def without_letters(words, letters):
-    return (word for word in words if not contains_any(word, letters))
-
-def without_letter_groups(words, letter_groups):
-    for word in words:
-        fail = False
-        for i, letter_group in enumerate(letter_groups):
-            if not without_letters_at(word, letter_group, i):
-                fail = True
-        if not fail:
+        if re.match(pattern, word):
             yield word
 
-def contains_any(word, letters):
-    for letter in letters:
-        if letter in word:
-            return True
-    return False
 
-def contains_all(word, letters):
-    for letter in letters:
-        if letter not in word:
-            return False
-    return True
+def print_words(words):
+    """Prints words"""
+    logging.info("Candidates are %s", list(words))
+
+
+def remove_duplicates(words):
+    """Removes words with letter duplicates"""
+    for word in words:
+        if len(set(word)) == len(word):
+            yield word
+
+
+def with_check(words):
+    """Only words with letters to check"""
+    for word in words:
+        a_pass = True
+        for letter in CHECK:
+            if letter not in word:
+                a_pass = False
+                break
+        if a_pass:
+            yield word
+
+
+def with_letters(words):
+    """Only words containing confirmed letters"""
+    confirmed = "".join(set("".join(NO_LETTERS_AT)))
+    for word in words:
+        a_pass = True
+        for letter in confirmed:
+            if letter not in word:
+                a_pass = False
+                break
+        if a_pass:
+            yield word
+
 
 def main():
+    """Main function"""
+    pattern = build_pattern()
+    logging.debug('pattern %s', pattern)
     words = list(load_words())
-    letters_removed = list(without_letters(words, HAS_NO_LETTERS))
-    containing_letters = list(with_letters(letters_removed, HAS_LETTERS))
-    containing_letters_at_positions = list(with_letters_at(containing_letters, WORD))
-    options = without_letter_groups(containing_letters_at_positions, NO_LETTERS_AT)
-    logging.info("options left %s", set(options))
+    candidates = with_letters(match_words(words, pattern))
+    if NO_DUPLICATES:
+        candidates = remove_duplicates(candidates)
+    if CHECK:
+        candidates = with_check(candidates)
+    print_words(candidates)
     return 0
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())
