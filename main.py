@@ -13,6 +13,8 @@ logging.basicConfig(level=logging.DEBUG)
 WORD = ["", "", "", "", "", ]  # orange letters here
 NO_LETTERS_AT = ["", "", "", "", "", ]  # blue letters here
 HAS_NO_LETTERS = ""  # forbidden letters here
+
+# Next two options are to help choose next word to check
 NO_DUPLICATES = False
 CHECK = ""
 
